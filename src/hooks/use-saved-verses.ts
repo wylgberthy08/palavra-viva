@@ -4,10 +4,9 @@ import {
   loadSavedVerses,
   persistSavedVerses,
   toSavedVerse,
-  type SavedStatus,
-  type SavedVerse,
 } from '@/services/storage/saved-verses';
 import type { Verse } from '@/types/bible';
+import type { SavedStatus, SavedVerse } from '@/types/saved-verse';
 
 type SavedVersesContextValue = ReturnType<typeof useSavedVersesState>;
 

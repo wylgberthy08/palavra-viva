@@ -10,7 +10,7 @@ import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useSavedVerses } from '@/hooks/use-saved-verses';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/auth';
-import type { SavedStatus } from '@/services/storage/saved-verses';
+import type { SavedStatus } from '@/types/saved-verse';
 
 type Filter = 'all' | SavedStatus;
 

@@ -1,6 +1,7 @@
 // https://docs.expo.dev/guides/using-eslint/
 const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
+const globals = require('globals');
 
 module.exports = defineConfig([
   expoConfig,
@@ -29,6 +30,15 @@ module.exports = defineConfig([
           'newlines-between': 'always',
         },
       ],
+    },
+  },
+  {
+    // Configuração e mocks de teste rodam em Node e usam a API do Jest.
+    // `/* eslint-env jest */` não é reconhecido em flat config, então o globals
+    // é declarado aqui.
+    files: ['jest.config.js', 'jest.setup.js', '__mocks__/**/*.js', 'scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.jest },
     },
   },
 ]);

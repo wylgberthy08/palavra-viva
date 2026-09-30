@@ -1,5 +1,3 @@
-/* eslint-env jest */
-
 // Mock de AsyncStorage: mantém o teste independente de aparelho nativo.
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')

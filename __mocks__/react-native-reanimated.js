@@ -3,16 +3,10 @@
 /* Animated.View, Easing e Keyframe. Reanimated 4 depende do módulo nativo de worklets, */
 /* que não existe fora do aparelho. */
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { View } = require('react-native');
+const { Image, ScrollView, Text, View } = require('react-native');
 
 /** Animated.View sem animação: o teste valida estrutura, não curva de interpolação. */
-const Animated = {
-  View,
-  Text: require('react-native').Text,
-  ScrollView: require('react-native').ScrollView,
-  Image: require('react-native').Image,
-};
+const Animated = { View, Text, ScrollView, Image };
 
 const Easing = {
   linear: (t) => t,

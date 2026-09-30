@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { render } from '@testing-library/react-native';
 import { Text, View } from 'react-native';
+import Animated, { Keyframe } from 'react-native-reanimated';
 
 import { BIBLE_VERSION } from '@/config/bible';
 
@@ -29,9 +30,7 @@ describe('harness de teste', () => {
   });
 
   it('substitui Reanimated, que depende de módulo nativo', () => {
-    const Reanimated = require('react-native-reanimated');
-
-    expect(Reanimated.View).toBe(View);
-    expect(typeof Reanimated.Keyframe).toBe('function');
+    expect(Animated.View).toBe(View);
+    expect(new Keyframe({ from: { opacity: 0 }, to: { opacity: 1 } })).toBeInstanceOf(Keyframe);
   });
 });

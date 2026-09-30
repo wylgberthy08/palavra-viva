@@ -1,7 +1,9 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
+import type { AuthState, User } from '@/types/auth';
+
 import { supabase } from './services/supabase';
-import { AuthState, User } from './types/auth';
+
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
