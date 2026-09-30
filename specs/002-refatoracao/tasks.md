@@ -64,9 +64,9 @@ o merge **até ser removido do índice e a credencial rotacionada**. T005 não �
 - [ ] T014 Mover `SavedVerse` e `SavedStatus` de `src/services/storage/saved-verses.ts` para `src/types/saved-verse.ts`, atualizando os importadores, conforme Princípio III: "Tipos compartilhados vivem em `src/types/` e são a única fonte de verdade para contratos de domínio"
 - [ ] T015 Mover `User`, `AuthState` e `AuthScreen` de `src/auth/types/auth.ts` para `src/types/auth.ts` e apagar o diretório `src/auth/types/`, conforme Princípio III
 - [ ] T016 Exportar `SAVED_VERSES_STORAGE_KEY` com o valor `@palavra-viva/saved-verses/v1` de `src/services/storage/saved-verses.ts`, para que o teste consiga preparar e limpar o estado
-- [ ] T017 Criar `scripts/check-dead-code.mjs`, que falha ao encontrar símbolo exportado sem consumidor e chave de `StyleSheet.create` sem referência
-- [ ] T018 Criar `scripts/check-styles.mjs`, que falha ao encontrar literal hexadecimal fora de `src/constants/theme.ts`
-- [ ] T019 Acrescentar os scripts `check:dead` e `check:styles` em `package.json` e incluí-los no `verify`
+- [x] T017 Criar `scripts/check-dead-code.mjs`, que falha ao encontrar símbolo exportado sem consumidor e chave de `StyleSheet.create` sem referência
+- [x] T018 Criar `scripts/check-styles.mjs`, que falha ao encontrar literal hexadecimal fora de `src/constants/theme.ts`
+- [x] T019 Acrescentar os scripts `check:dead` e `check:styles` em `package.json`. **Eles entram no `verify` em T051**, não agora: ambos estão vermelhos de propósito, porque o código morto que US2 remove ainda existe. Rodá-los já é o que prova que o gate funciona.
 
 **Checkpoint**: Fundação pronta. O gate está verde, existe suíte de teste, e os tipos de domínio
 moram em um lugar só.

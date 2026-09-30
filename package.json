@@ -58,6 +58,8 @@
     "typecheck": "npx tsc --noEmit",
     "lint": "eslint .",
     "test": "jest --ci",
+    "check:dead": "node scripts/check-dead-code.mjs",
+    "check:styles": "node scripts/check-styles.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test"
   },
   "private": true
