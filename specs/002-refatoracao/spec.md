@@ -25,7 +25,7 @@ execução dos comandos de verificação:
 | Módulos sem nenhum consumidor | 8 (352 linhas) + 1 que só o código morto usa |
 | Símbolos mortos dentro de módulos vivos | 1 export, 6 estilos, 5 props, 2 tipos |
 | Linhas duplicadas byte a byte (Login × Register) | 148 (o `StyleSheet.create` inteiro) |
-| Literais hexadecimais fora de token | 30 ocorrências, 13 valores, 8 arquivos |
+| Literais hexadecimais fora de token | 32 ocorrências, 13 valores, 9 arquivos |
 | Paletas distintas em uso | 3 (tokens, terracota, dourado) |
 | `any` e coerções sem validação | 1 `any` + 7 coerções |
 | `@ts-ignore` / `eslint-disable` | 0 |

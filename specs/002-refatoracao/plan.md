@@ -7,7 +7,7 @@
 ## Resumo
 
 Refatorar o app sem mudar o que o usuário experimenta. Treze defeitos corrigidos, 9 arquivos e
-373 linhas removidos, 148 linhas duplicadas unificadas, 30 literais de cor trocados por token, e
+373 linhas removidos, 148 linhas duplicadas unificadas, 32 literais de cor trocados por token, e
 testes automatizados onde hoje não existe nenhum. Executado em cinco ondas, cada uma reversível e
 com gate verde ao fim.
 
@@ -198,7 +198,7 @@ estilo e estado de negócio.
 | 4.2 | `src/constants/theme.ts` | Mover `import '@/global.css'` para `_layout.tsx`, porque um arquivo de constante não deveria ter efeito colateral |
 | 4.3 | `src/components/themed-text.tsx` | Ler a escala de tipos de `theme.ts` em vez do próprio `StyleSheet` |
 | 4.4 | `src/global.css` | Declarar as variáveis de cor e `color-scheme`, para a web ter a mesma paleta |
-| 4.5 | 8 arquivos com literal | Trocar as 30 ocorrências por token, com variante escura onde o valor hoje é fixo |
+| 4.5 | 9 arquivos com literal | Trocar as 32 ocorrências por token, com variante escura onde o valor hoje é fixo |
 | 4.6 | `src/components/ui/` | Mover `themed-text.tsx` e `themed-view.tsx`, que estão fora da pasta de UI |
 | 4.7 | `src/screens/home-screen.tsx` | Novo: conteúdo e estado da Home, sem estilo |
 | 4.8 | `src/screens/saved-verses-screen.tsx` | Novo: conteúdo e estado de Decorados, sem estilo |

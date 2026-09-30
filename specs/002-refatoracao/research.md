@@ -163,9 +163,10 @@ o arquivo é `index.tsx`. A lista (nome, rótulo, ícone) está duplicada e dive
 
 ### 5.4 Cor
 
-30 ocorrências de literal hexadecimal fora de `constants/theme.ts`, em 8 arquivos, 13 valores
+32 ocorrências de literal hexadecimal fora de `constants/theme.ts`, em 9 arquivos, 13 valores
 distintos. Cinco deles já têm token e ainda assim estão escritos inline; os outros oito não têm
-token correspondente:
+token correspondente. Contagem conferida por `npm run check:styles`, que é a fonte executável
+deste número:
 
 | Valor | Ocorrências | Onde | Observação |
 |---|---|---|---|

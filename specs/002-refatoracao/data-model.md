@@ -133,7 +133,7 @@ Nenhum tipo de domínio. O plano adiciona três artefatos que não são dados:
 reorganizada para resolver a colisão entre `#8C4A27` e `#E46F4D`. Isso é dado de **apresentação**,
 persistido em nenhum lugar: trocar a cor de um botão não toca o que está em `AsyncStorage`.
 
-Os 30 literais de cor saem de 8 arquivos. Nenhuma migração, porque nenhum valor de cor está
+Os 32 literais de cor saem de 9 arquivos. Nenhuma migração, porque nenhum valor de cor está
 gravado.
 
 ## 7. Verificação por onda
