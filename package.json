@@ -38,11 +38,15 @@
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^14.0.1",
+    "@types/jest": "29.5.14",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.2",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
+    "jest": "~29.7.0",
+    "jest-expo": "~57.0.5",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -53,7 +57,8 @@
     "web": "expo start --web",
     "typecheck": "npx tsc --noEmit",
     "lint": "expo lint",
-    "verify": "npm run typecheck && npm run lint"
+    "test": "jest --ci",
+    "verify": "npm run typecheck && npm run lint && npm run test"
   },
   "private": true
 }
