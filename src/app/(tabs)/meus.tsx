@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Alert, View } from 'react-native';
 
-import { EmptyState, LoadingState } from '@/components/bible/bible-states';
+import { EmptyState, ErrorState, LoadingState } from '@/components/bible/bible-states';
 import { Flashcard } from '@/components/bible/flashcard';
 import { VerseCard } from '@/components/bible/verse-card';
 import { ThemedText } from '@/components/themed-text';
@@ -22,11 +22,15 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 /** Toca no versículo e ele abre direto no flashcard, sem trocar de tela. */
 export default function MeusScreen() {
-  const { items, loading, removeVerse, updateStatus } = useSavedVerses();
+  const { items, loading, error, reload, removeVerse, updateStatus } = useSavedVerses();
   const { user, signOut } = useAuth();
   const theme = useTheme();
   const [filter, setFilter] = useState<Filter>('all');
   const [openRef, setOpenRef] = useState<string | null>(null);
+
+  // `user.email` é string vazia para conta sem e-mail, e `[0]` em string vazia é
+  // `undefined`. O fallback evita o TypeError que derrubava a tela inteira.
+  const avatarInitial = (user?.name?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
 
   const handleSignOut = () => {
     Alert.alert('Sair da conta', 'Tem certeza que deseja sair?', [
@@ -60,7 +64,7 @@ export default function MeusScreen() {
                     <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
                   ) : (
                     <ThemedText type="smallBold" themeColor="primary" style={styles.avatarInitial}>
-                      {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                      {avatarInitial}
                     </ThemedText>
                   )}
                 </ThemedView>
@@ -91,6 +95,12 @@ export default function MeusScreen() {
 
         {loading ? (
           <LoadingState message="Carregando salvos..." />
+        ) : error ? (
+          // Falha de leitura é o motivo de a lista vir vazia, então ela é
+          // mostrada no lugar da lista e não ao lado dela.
+          <View style={styles.list}>
+            <ErrorState message={error} onRetry={reload} />
+          </View>
         ) : (
           <FlatList
             data={visible}

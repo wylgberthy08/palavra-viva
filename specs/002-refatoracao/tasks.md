@@ -88,25 +88,25 @@ manutenção, e cada uma delas precisa dos testes que esta fase cria para ser fe
 
 ### Tests for User Story 1 (escritos primeiro, devem falhar antes da implementação)
 
-- [ ] T020 [P] [US1] Teste de caracterização de `mapVerseResponse` em `__tests__/services/api/verse-mapper.test.ts`, cobrindo `verseEnd` ausente caindo para `verse` e texto sem a chave `pt-br`
-- [ ] T021 [P] [US1] Teste de caracterização do ciclo `toSavedVerse` → `persistSavedVerses` → `loadSavedVerses` em `__tests__/services/storage/saved-verses.test.ts`, usando um item gravado pela versão `v1` como fixture
-- [ ] T022 [P] [US1] Teste de regressão da escrita otimista em `__tests__/hooks/use-saved-verses.test.tsx`, com `AsyncStorage.setItem` rejeitando: a escrita falha e a lista não exibe o item
-- [ ] T023 [P] [US1] Teste de regressão do carregamento em `__tests__/hooks/use-saved-verses.test.tsx`, com `AsyncStorage.getItem` rejeitando: o hook expõe `error` em vez de lista vazia
-- [ ] T024 [P] [US1] Teste de regressão de `signUp` em `__tests__/auth/index.test.tsx`: cadastro bem-sucedido sem sessão devolve sucesso, e o estado de erro do contexto não é contaminado
+- [x] T020 [P] [US1] Teste de caracterização de `mapVerseResponse` em `__tests__/services/api/verse-mapper.test.ts`, cobrindo `verseEnd` ausente caindo para `verse` e texto sem a chave `pt-br`
+- [x] T021 [P] [US1] Teste de caracterização do ciclo `toSavedVerse` → `persistSavedVerses` → `loadSavedVerses` em `__tests__/services/storage/saved-verses.test.ts`, usando um item gravado pela versão `v1` como fixture
+- [x] T022 [US1] Teste de regressão da escrita otimista em `__tests__/hooks/use-saved-verses.test.tsx`, com `AsyncStorage.setItem` rejeitando: a escrita falha e a lista não exibe o item
+- [x] T023 [US1] Teste de regressão do carregamento em `__tests__/hooks/use-saved-verses.test.tsx`, com `AsyncStorage.getItem` rejeitando: o hook expõe `error` em vez de lista vazia
+- [x] T024 [US1] Teste de regressão de `signUp` em `__tests__/auth/index.test.tsx`: cadastro bem-sucedido sem sessão devolve sucesso, e o estado de erro do contexto não é contaminado
 
 ### Implementation for User Story 1
 
-- [ ] T025 [US1] Adicionar em `src/services/storage/saved-verses.ts` a validação de forma de cada item lido, descartando **somente** o item inválido e preservando o restante da lista, com estas restrições: `ref`, `reference`, `bookSlug`, `bookName` e `text` são string não vazia; `chapter` e `verseStart` são inteiro maior ou igual a 1; `verseEnd` é inteiro maior ou igual a `verseStart`; `status` é `'decorando'` ou `'dominado'`; `savedAt` é string em ISO 8601 parseável
-- [ ] T026 [US1] Fazer `loadSavedVerses` em `src/services/storage/saved-verses.ts` distinguir os quatro estados de `data-model.md` seção 2.2: nada salvo retorna `[]`; JSON inválido e `AsyncStorage` indisponível lançam erro nomeado em vez de devolver lista vazia
-- [ ] T027 [US1] Inverter a ordem de `save` em `src/hooks/use-saved-verses.ts:35-38` para persistir antes de atualizar o estado, com rollback e propagação da falha, para que o que a tela mostra sempre foi gravado
-- [ ] T028 [US1] Adicionar tratamento de rejeição ao carregamento inicial em `src/hooks/use-saved-verses.ts:21-33` e expor `error` na API do hook
-- [ ] T029 [US1] Consumir o `error` do hook em `src/screens/saved-verses-screen.tsx` ou, enquanto a extração da fase US4 não existir, em `src/app/(tabs)/meus.tsx:92-101`, trocando `EmptyState` por `ErrorState`
-- [ ] T030 [US1] Proteger o cálculo da inicial do avatar em `src/app/(tabs)/meus.tsx:63`, onde `user.email[0].toUpperCase()` lança `TypeError` para conta sem email
-- [ ] T031 [US1] Fazer `src/auth/services/supabase.ts:6-7` falhar na inicialização com mensagem que nomeie a variável ausente, em vez de chamar `createClient` com string vazia, conforme Technical Constraints: "O cliente Supabase MUST NOT nascer com string vazia por fallback silencioso"
-- [ ] T032 [US1] Fazer `signUp` em `src/auth/index.tsx:117-125` devolver a confirmação de e-mail pelo canal de sucesso, sem contaminar o estado de erro do contexto
-- [ ] T033 [US1] Trocar a assinatura `(user: any)` de `mapSupabaseUser` em `src/auth/index.tsx:21` pelo tipo `User` declarado pelo `@supabase/supabase-js`, eliminando o único `any` de `src/`
-- [ ] T034 [US1] Fazer `submitSearch` em `src/app/(tabs)/index.tsx:25-30` informar o motivo quando a referência tiver menos de três caracteres, em vez de não fazer nada
-- [ ] T035 [US1] Passar `npm run verify` e confirmar que T020 a T024 ficaram verdes
+- [x] T025 [US1] Adicionar em `src/services/storage/saved-verses.ts` a validação de forma de cada item lido, descartando **somente** o item inválido e preservando o restante da lista, com estas restrições: `ref`, `reference`, `bookSlug`, `bookName` e `text` são string não vazia; `chapter` e `verseStart` são inteiro maior ou igual a 1; `verseEnd` é inteiro maior ou igual a `verseStart`; `status` é `'decorando'` ou `'dominado'`; `savedAt` é string em ISO 8601 parseável
+- [x] T026 [US1] Fazer `loadSavedVerses` em `src/services/storage/saved-verses.ts` distinguir os quatro estados de `data-model.md` seção 2.2: nada salvo retorna `[]`; JSON inválido e `AsyncStorage` indisponível lançam erro nomeado em vez de devolver lista vazia
+- [x] T027 [US1] Inverter a ordem de `save` em `src/hooks/use-saved-verses.ts:35-38` para persistir antes de atualizar o estado, com rollback e propagação da falha, para que o que a tela mostra sempre foi gravado
+- [x] T028 [US1] Adicionar tratamento de rejeição ao carregamento inicial em `src/hooks/use-saved-verses.ts:21-33` e expor `error` na API do hook
+- [x] T029 [US1] Consumir o `error` do hook em `src/screens/saved-verses-screen.tsx` ou, enquanto a extração da fase US4 não existir, em `src/app/(tabs)/meus.tsx:92-101`, trocando `EmptyState` por `ErrorState`
+- [x] T030 [US1] Proteger o cálculo da inicial do avatar em `src/app/(tabs)/meus.tsx:63`, onde `user.email[0].toUpperCase()` lança `TypeError` para conta sem email
+- [x] T031 [US1] Fazer `src/auth/services/supabase.ts:6-7` falhar na inicialização com mensagem que nomeie a variável ausente, em vez de chamar `createClient` com string vazia, conforme Technical Constraints: "O cliente Supabase MUST NOT nascer com string vazia por fallback silencioso"
+- [x] T032 [US1] Fazer `signUp` em `src/auth/index.tsx:117-125` devolver a confirmação de e-mail pelo canal de sucesso, sem contaminar o estado de erro do contexto
+- [x] T033 [US1] Trocar a assinatura `(user: any)` de `mapSupabaseUser` em `src/auth/index.tsx:21` pelo tipo `User` declarado pelo `@supabase/supabase-js`, eliminando o único `any` de `src/`
+- [x] T034 [US1] Fazer `submitSearch` em `src/app/(tabs)/index.tsx:25-30` informar o motivo quando a referência tiver menos de três caracteres, em vez de não fazer nada
+- [x] T035 [US1] Passar `npm run verify` e confirmar que T020 a T024 ficaram verdes
 
 **Checkpoint**: US1 é a única história que fecha **perda de dado** e **travamento de tela**. Pode ser
 entregue sozinha.

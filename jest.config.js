@@ -3,6 +3,13 @@
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // `theme.ts` importa `global.css`; sem isto o Jest tenta parsear CSS como JS.
+  // As imagens são importadas por alias `@/assets/...`, que não passa pelo
+  // transformador de assets do preset.
+  moduleNameMapper: {
+    '\\.css$': '<rootDir>/__mocks__/style-mock.js',
+    '\\.(png|jpe?g|gif|webp|svg)$': '<rootDir>/__mocks__/file-mock.js',
+  },
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)',
   ],
