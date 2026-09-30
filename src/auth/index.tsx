@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+
 import { supabase } from './services/supabase';
 import { AuthState, User } from './types/auth';
 

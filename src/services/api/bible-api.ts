@@ -9,6 +9,7 @@ import type {
   VerseApiResponse,
   VotdApiResponse,
 } from '@/types/bible';
+
 import { bibleHttp } from './axios-client';
 import {
   mapBooksResponse,

@@ -1,19 +1,3 @@
-<!--
-SYNC IMPACT REPORT (rascunho de revisão - remover antes do commit)
-- Mudança de versão: (template não versionado) -> 1.0.0
-- Princípios modificados: nenhum (documento anterior era o template puro, sem conteúdo)
-- Princípios adicionados:
-  I. Simplicidade e YAGNI
-  II. Responsabilidade Única e Coesão
-  III. Fronteiras Explícitas e Dependências Unidirecionais
-  IV. Nomenclatura e Código Autodocumentado
-  V. Contratos Tipados e Tratamento de Erro Explícito
-  VI. Mudanças Pequenas e Código Sem Resíduo
-- Seções adicionadas: Technical Constraints, Quality Gates
-- Seções removidas: nenhuma
-- TODOs deferred: nenhum
--->
-
 # Palavra Viva Constitution
 
 ## Core Principles
@@ -89,8 +73,6 @@ Todo limite de sistema tem contrato tipado e tratamento de erro explícito.
   usuário veja estado vazio sem feedback.
 - Erro é traduzido para mensagem compreensível na fronteira de UI, preservando o erro técnico
   original para diagnóstico.
-- Segredo e chave não são commitados; vêm de variável de ambiente, com `.env.example` documentando
-  o contrato.
 
 Racional: falha silenciosa ou erro cru destroem confiança do usuário mais rápido que qualquer
 detalhe de interface.
@@ -109,6 +91,31 @@ escopo declarado.
 Racional: mudanças pequenas são revisáveis e localizáveis; resíduo esquecido custa mais que o
 recurso que o introduziu.
 
+### VII. Segredos Fora do Controle de Versão
+
+Nenhum segredo, credencial ou arquivo de ambiente real entra no git, em nenhuma hipótese. O
+histórico do repositório é público e permanente: um valor commitado continua exposto mesmo depois
+de apagado no HEAD.
+
+- `.env` e toda variante de ambiente local MUST estar no `.gitignore`. A regra MUST usar negação
+  ampla primeiro (`.env*`) e reabrir só o exemplo (`.env.example`), para que variantes futuras
+  (`env.local`, `.env.production.local`) nasçam já cobertas.
+- Arquivo de ambiente MUST ser lido por variável, nunca por valor embutido no código. Valor fixo
+  no fonte é segredo versionado, mesmo quando a variável é `EXPO_PUBLIC_`.
+- `.env.example` MUST permanecer versionado e MUST conter apenas o contrato: nome das variáveis,
+  comentário do que é, e valor de marcador não funcional.
+- Chave de serviço MUST NOT existir no cliente. No Expo, o bundle é distribuível, então `service_role`
+  ou equivalente no código é exposição, não configuração.
+- Segredo que já foi commitado MUST ser rotacionado. Remover o arquivo do HEAD não desfaz a
+  exposição: o valor segue no histórico até ser rotacionado na origem.
+- Credencial usada em teste MUST ser valor falso e obviamente fictício, nunca uma credencial que
+  funcione em algum ambiente real.
+
+Racional: `.env` versionado é a falha mais comum e mais irreversível de higiene de repositório. O
+anon key do Supabase é público por projeto, mas o padrão de versionar `.env` é o que permite um
+`service_role` ser commitado por engano depois, e exposição já ocorrida não se desfaz com um
+`git rm`.
+
 ## Technical Constraints
 
 - Runtime: Expo SDK 57 com expo-router e React Native 0.86; entry point permanece
@@ -122,6 +129,10 @@ recurso que o introduziu.
   tokens). Segunda biblioteca de estilo só com aprovação registrada.
 - Plataforma: divergência de comportamento é explícita por variante `.web.tsx` ou por guarda de
   plataforma; divergência implícita não existe.
+- Ambiente: variável é lida de `process.env` no módulo que a consome, com falha explícita quando
+  ausente. O cliente Supabase MUST NOT nascer com string vazia por fallback silencioso.
+- Segredos: `.gitignore` cobre `.env*` com exceção explícita de `.env.example`, e nenhum valor real
+  está no código-fonte.
 
 ## Quality Gates
 
@@ -129,8 +140,10 @@ recurso que o introduziu.
 - `npx tsc --noEmit` passa sem erro; erro de tipo não é silenciado.
 - Todo comportamento novo ou corrigido tem teste automatizado, ou verificação manual registrada na
   revisão quando não for automatizável sem equipamento real.
-- Toda revisão checa conformidade com os Princípios I a VI e registra desvio como dívida técnica
+- Toda revisão checa conformidade com os Princípios I a VII e registra desvio como dívida técnica
   com plano de remoção.
+- `git ls-files` não lista `.env` nem variante de ambiente que não seja `.env.example`. A revisão
+  roda esse comando antes de aprovar; arquivo de ambiente versionado bloqueia o PR.
 - Complexidade adicionada é justificada por requisito, no código ou na revisão, não apenas em
   conversa.
 
@@ -154,7 +167,9 @@ Política de versionamento (semver):
 - MINOR: princípio ou seção nova, ou expansão material de orientação existente.
 - PATCH: esclarecimento, correção de redação, refino não semântico.
 
-Revisão de conformidade: a cada PR, a revisão verifica os Princípios I a VI. Violação recorrente
-gera plano de remediação com prazo, em vez de ser aceita como estado permanente.
+Revisão de conformidade: a cada PR, a revisão verifica os Princípios I a VII. Violação recorrente
+gera plano de remediação com prazo, em vez de ser aceita como estado permanente. Arquivo de
+ambiente versionado não é dívida: bloqueia o merge até ser removido do índice e a credencial
+rotacionada.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-30 | **Last Amended**: 2026-09-30
+**Version**: 1.1.0 | **Ratified**: 2026-09-30 | **Last Amended**: 2026-09-30
