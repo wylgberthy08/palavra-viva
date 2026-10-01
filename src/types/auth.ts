@@ -1,3 +1,5 @@
+/** Contrato de domínio da sessão do usuário. Fonte única de verdade. */
+
 export interface User {
   id: string;
   email: string;
@@ -12,5 +14,3 @@ export interface AuthState {
   loading: boolean;
   error: string | null;
 }
-
-export type AuthScreen = 'login' | 'register';

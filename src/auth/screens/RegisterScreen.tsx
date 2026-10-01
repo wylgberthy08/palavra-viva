@@ -10,11 +10,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../index';
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+
+import { useAuth } from '../index';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -55,10 +57,16 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
-    const { error } = await signUp(trimmedName, trimmedEmail, password);
+    const { error, message } = await signUp(trimmedName, trimmedEmail, password);
     setLoading(false);
     if (error) {
       Alert.alert('Erro ao criar conta', error);
+      return;
+    }
+    if (message) {
+      // Sucesso que exige ação do usuário. `Alert.alert` não aparece na web, e
+      // a substituição por mensagem em tela é a tarefa de US5.
+      Alert.alert('Conta criada', message);
     }
   };
 

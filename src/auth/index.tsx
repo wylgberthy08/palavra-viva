@@ -1,13 +1,25 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+
+import type { AuthState, User } from '@/types/auth';
+
 import { supabase } from './services/supabase';
-import { AuthState, User } from './types/auth';
+
+type SupabaseUser = NonNullable<Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']>['user'];
+
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (name: string, email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (
+    name: string,
+    email: string,
+    password: string
+  ) => Promise<{ error: string | null; message?: string }>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
+
+/** Cadastro bem-sucedido que ainda depende de confirmação de e-mail. */
+const EMAIL_CONFIRMATION_REQUIRED = 'Conta criada. Confirme seu email para entrar.';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -18,15 +30,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error: null,
   });
 
-  const mapSupabaseUser = (user: any): User | null => {
-    if (!user) return null;
+  const mapSupabaseUser = (user: SupabaseUser): User => {
     return {
       id: user.id,
-      email: user.email || '',
-      name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-      avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+      email: user.email ?? '',
+      name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
+      avatarUrl: user.user_metadata?.avatar_url ?? user.user_metadata?.picture ?? null,
       createdAt: user.created_at,
-      updatedAt: user.updated_at || user.created_at,
+      updatedAt: user.updated_at ?? user.created_at,
     };
   };
 
@@ -120,9 +131,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: null };
       }
 
-      const message = 'Conta criada. Confirme seu email para entrar.';
-      setState(prev => ({ ...prev, error: message }));
-      return { error: message };
+      // Cadastro sem sessão é sucesso: a conta existe e o e-mail aguarda confirmação.
+      // O estado de erro do contexto fica limpo, e a confirmação chega pelo canal de
+      // sucesso, que a tela de registro exibe.
+      return { error: null, message: EMAIL_CONFIRMATION_REQUIRED };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao criar conta';
       setState(prev => ({ ...prev, error: message }));

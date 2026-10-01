@@ -17,6 +17,7 @@ export const Colors = {
     primary: '#8C4A27',
     accent: '#B87A28',
     success: '#4D6B53',
+    danger: '#B3261E',
   },
   dark: {
     text: '#FFFFFF',
@@ -27,6 +28,7 @@ export const Colors = {
     primary: '#FFB693',
     accent: '#FFB964',
     success: '#AECFB2',
+    danger: '#F2B8B5',
   },
 } as const;
 

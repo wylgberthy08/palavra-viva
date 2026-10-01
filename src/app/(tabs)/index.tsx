@@ -16,6 +16,7 @@ export default function HomeScreen() {
   const { isSaved, toggleVerse } = useSavedVerses();
   const [query, setQuery] = useState('');
   const [submitted, setSubmitted] = useState<string | null>(null);
+  const [buscaCurta, setBuscaCurta] = useState(false);
 
   const search = useSearchVerse(submitted ?? '');
   const activeVerse = search.data ?? null;
@@ -24,7 +25,15 @@ export default function HomeScreen() {
 
   const submitSearch = (value = query) => {
     const normalized = value.trim();
-    if (normalized.length < 3) return;
+    if (normalized.length < 3) {
+      // Antes, a busca morria em silêncio e a tela continuava mostrando o
+      // estado anterior, como se o botão não tivesse funcionado.
+      setQuery(normalized);
+      setSubmitted(null);
+      setBuscaCurta(true);
+      return;
+    }
+    setBuscaCurta(false);
     setQuery(normalized);
     setSubmitted(normalized);
   };
@@ -32,6 +41,7 @@ export default function HomeScreen() {
   const clearSearch = () => {
     setQuery('');
     setSubmitted(null);
+    setBuscaCurta(false);
   };
 
   return (
@@ -80,6 +90,9 @@ export default function HomeScreen() {
 
          {isLoading ? <LoadingState message="Buscando versículo..." /> : null} 
           {error ? <ErrorState message={getBibleErrorMessage(error)} onRetry={() => search.refetch()} /> : null}
+          {buscaCurta ? (
+            <ErrorState message="Digite ao menos 3 caracteres, por exemplo “João 3:16”." />
+          ) : null}
 
           {activeVerse && !isLoading ? (
             <>
