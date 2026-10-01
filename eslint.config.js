@@ -12,6 +12,10 @@ module.exports = defineConfig([
       '.expo/*',
       'node_modules/*',
       'expo-env.d.ts',
+      // Edge Functions rodam no Deno, não no app. Os especificadores `npm:` e
+      // `jsr:` não são resolvíveis pelo resolver de Node do plugin `import`, e
+      // estas funções não entram no bundle do Expo.
+      'supabase/**',
     ],
   },
   {

@@ -8,9 +8,12 @@ import { useSearchVerse } from '@/hooks/use-search-verse';
 jest.mock('@/hooks/use-saved-verses', () => ({ useSavedVerses: jest.fn() }));
 jest.mock('@/hooks/use-search-verse', () => ({ useSearchVerse: jest.fn() }));
 jest.mock('@/auth', () => ({ useAuth: jest.fn() }));
+jest.mock('@/account/hooks/use-excluir-conta', () => ({ useExcluirConta: jest.fn() }));
 
 const useAuth = jest.requireMock('@/auth').useAuth as jest.Mock;
 const useSearchVerseMock = useSearchVerse as jest.MockedFunction<typeof useSearchVerse>;
+const useExcluirContaMock = jest.requireMock('@/account/hooks/use-excluir-conta')
+  .useExcluirConta as jest.Mock;
 
 const RECARGA = {
   reload: jest.fn(),
@@ -19,6 +22,7 @@ const RECARGA = {
   removeVerse: jest.fn(),
   toggleVerse: jest.fn(),
   updateStatus: jest.fn(),
+  clear: jest.fn(),
 };
 
 function semSalvos(extra: Record<string, unknown> = {}) {
@@ -41,6 +45,12 @@ beforeEach(() => {
     refetch: jest.fn(),
   } as unknown as ReturnType<typeof useSearchVerse>);
   useAuth.mockReturnValue({ user: null, signOut: jest.fn() });
+  useExcluirContaMock.mockReturnValue({
+    estado: 'ocioso',
+    mensagem: null,
+    excluir: jest.fn(),
+    limpar: jest.fn(),
+  });
 });
 
 describe('MeusScreen', () => {
@@ -85,6 +95,42 @@ describe('MeusScreen', () => {
     await render(<MeusScreen />);
 
     expect(screen.getByText(/Nenhum versículo decorado/)).toBeTruthy();
+  });
+  it('abre as opções da conta ao tocar no nome', async () => {
+    useAuth.mockReturnValue({
+      user: { id: 'u1', email: 'joao@exemplo.com', name: null, avatarUrl: null, createdAt: '', updatedAt: '' },
+      signOut: jest.fn(),
+    });
+
+    await render(<MeusScreen />);
+
+    expect(screen.queryByTestId('conta-opcoes')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Abrir opções da conta'));
+
+    expect(screen.getByTestId('conta-opcoes')).toBeTruthy();
+    expect(screen.getByText('Sair')).toBeTruthy();
+    expect(screen.getByTestId('conta-item-excluir')).toBeTruthy();
+  });
+
+  it('encaminha a exclusão confirmada para o hook', async () => {
+    const excluir = jest.fn();
+    useAuth.mockReturnValue({
+      user: { id: 'u1', email: 'joao@exemplo.com', name: null, avatarUrl: null, createdAt: '', updatedAt: '' },
+      signOut: jest.fn(),
+    });
+    useExcluirContaMock.mockReturnValue({
+      estado: 'ocioso',
+      mensagem: null,
+      excluir,
+      limpar: jest.fn(),
+    });
+
+    await render(<MeusScreen />);
+    await fireEvent.press(screen.getByLabelText('Abrir opções da conta'));
+    await fireEvent.press(screen.getByTestId('conta-item-excluir'));
+    await fireEvent.press(screen.getByTestId('conta-confirmar-exclusao'));
+
+    expect(excluir).toHaveBeenCalledTimes(1);
   });
 });
 

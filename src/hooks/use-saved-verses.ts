@@ -1,6 +1,7 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import {
+  clearSavedVerses,
   loadSavedVerses,
   persistSavedVerses,
   toSavedVerse,
@@ -68,8 +69,18 @@ function useSavedVersesState() {
     }
   }, []);
 
-  const isSaved = useCallback((ref: string) => items.some((v) => v.ref === ref), [items]);
+  /**
+   * Apaga a coleção inteira. Usado pela exclusão de conta, onde a sessão já
+   * morreu no servidor: persistir `[]` aqui seria mostrar estado que não
+   * corresponde mais a nenhuma conta.
+   */
+  const clear = useCallback(async () => {
+    await clearSavedVerses();
+    setItems([]);
+    setError(null);
+  }, []);
 
+  const isSaved = useCallback((ref: string) => items.some((v) => v.ref === ref), [items]);
   const saveVerse = useCallback(
     async (verse: Verse, status: SavedStatus = 'decorando') => {
       if (items.some((v) => v.ref === verse.ref)) return;
@@ -108,6 +119,7 @@ function useSavedVersesState() {
     loading,
     error,
     reload,
+    clear,
     isSaved,
     saveVerse,
     removeVerse,

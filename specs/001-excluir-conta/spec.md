@@ -4,9 +4,28 @@
 
 **Created**: 2026-09-30
 
-**Status**: Draft
+**Status**: Draft (implementada)
 
 **Input**: User description: "analize o projeto e monte o plano de tudo que foi feito e uma funcionalidade nova que é o de excluir conta."
+
+## Desvio registrado: menu em vez de tela de conta
+
+Os requisitos abaixo foram escritos com uma **tela de conta** dedicada (`/conta`) como destino do
+toque no avatar. A implementação segue o pedido explícito do usuário: **tocar no nome em `/meus`
+abre um menu de opções**, sem nova rota.
+
+O que mudou em relação ao texto original:
+
+| Requisito original | Como ficou |
+|---|---|
+| FR-001 (tela de conta com área de perigo) | Menu com "Sair" e "Excluir conta" aberto sobre `/meus` |
+| FR-009 (e-mail + identificador do app + versão na tela) | Só o e-mail, no cabeçalho do menu |
+| US2 / cenários de "abrir a tela de conta" | "abrir o menu de conta" |
+| SC-001 (4 toques a partir de "Meus") | 3 toques: nome, "Excluir conta", confirmar |
+
+O que **não** mudou, porque é o núcleo de segurança e de consistência: a confirmação explícita e
+irreversível, o corpo vazio da Edge Function, o id derivado do JWT, a ordem de limpeza local só
+após confirmação do servidor, e os quatro estados de resultado.
 
 ## Contexto: o que já existe no projeto
 

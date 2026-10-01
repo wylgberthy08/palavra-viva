@@ -104,3 +104,14 @@ export async function loadSavedVerses(): Promise<SavedVerse[]> {
 export async function persistSavedVerses(items: SavedVerse[]): Promise<void> {
   await AsyncStorage.setItem(SAVED_VERSES_STORAGE_KEY, JSON.stringify(items));
 }
+
+/**
+ * Apaga a coleção de versículos decorados.
+ *
+ * `removeItem` e não `setItem('[]')`: "excluir conta" precisa deixar o
+ * dispositivo sem vestígio, e uma chave com `[]` é resíduo de uma conta
+ * anterior — visível em inspeção e confundindo quem usa o aparelho depois.
+ */
+export async function clearSavedVerses(): Promise<void> {
+  await AsyncStorage.removeItem(SAVED_VERSES_STORAGE_KEY);
+}
