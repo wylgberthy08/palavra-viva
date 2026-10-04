@@ -11,6 +11,7 @@ import { SavedVersesProvider } from '@/hooks/use-saved-verses';
 import { queryClient } from '@/query/client';
 
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ duration: 220, fade: true });
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
