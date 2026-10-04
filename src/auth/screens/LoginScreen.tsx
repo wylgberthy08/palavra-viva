@@ -97,6 +97,17 @@ export default function LoginScreen() {
           </ThemedView>
 
           <TouchableOpacity
+            style={styles.forgotPasswordButton}
+            onPress={() => router.push('/(auth)/forgot-password')}
+            disabled={loading || authLoading}
+            activeOpacity={0.8}
+          >
+            <ThemedText type="small" style={[styles.forgotPasswordText, { color: theme.accent }]}>
+              Esqueci minha senha
+            </ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.primaryButton, (loading || authLoading) && styles.buttonLoading]}
             onPress={handleLogin}
             disabled={loading || authLoading}
@@ -185,6 +196,14 @@ const styles = StyleSheet.create({
   },
   buttonLoading: {
     opacity: 0.7,
+  },
+  forgotPasswordButton: {
+    alignSelf: 'flex-end',
+    marginBottom: Spacing.two,
+    paddingVertical: 4,
+  },
+  forgotPasswordText: {
+    fontSize: 15,
   },
   primaryButtonText: {
     fontSize: 16,

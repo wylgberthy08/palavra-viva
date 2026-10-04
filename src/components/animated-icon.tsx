@@ -1,148 +1,139 @@
-import { Image } from 'expo-image';
 import * as SplashScreen from 'expo-splash-screen';
-import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 
-const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
-const DURATION = 600;
+import { Fonts, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
-export function AnimatedSplashOverlay() {
-  const [animate, setAnimate] = useState(false);
-  const [visible, setVisible] = useState(true);
+/** Tempo do nome entrando, e duração do overlay se retirando. */
+const WORDMARK_DELAY = 120;
+const WORDMARK_DURATION = 320;
+const WORDMARK_HOLD = 180;
+const EXIT_DURATION = 240;
 
-  if (!visible) return null;
+/**
+ * Rede de segurança: se `onLayout` não chegar, ou se a splash nativa não
+ * colaborar, o overlay assume o controle mesmo assim. Sem isso, uma promessa
+ * que não resolve deixa a tela presa na splash.
+ */
+const REVEAL_FALLBACK = 1200;
 
-  const splashKeyframe = new Keyframe({
-    0: {
-      transform: [{ scale: 1 }],
-      opacity: 1,
-    },
-    20: {
-      opacity: 1,
-    },
-    70: {
-      opacity: 0,
-      easing: Easing.elastic(0.7),
-    },
-    100: {
-      opacity: 0,
-      transform: [{ scale: 1 }],
-      easing: Easing.elastic(0.7),
-    },
-  });
+const WORDMARK_TOTAL = WORDMARK_DELAY + WORDMARK_DURATION;
 
-  const image = <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />;
-
-  return animate ? (
-    <Animated.View
-      entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
-        'worklet';
-        if (finished) {
-          scheduleOnRN(setVisible, false);
-        }
-      })}
-      style={styles.splashOverlay}>
-      {image}
-    </Animated.View>
-  ) : (
-    <View
-      onLayout={() => {
-        SplashScreen.hideAsync().finally(() => {
-          setAnimate(true);
-        });
-      }}
-      style={styles.splashOverlay}>
-      {image}
-    </View>
-  );
-}
-
-const keyframe = new Keyframe({
+const wordmarkKeyframe = new Keyframe({
   0: {
-    transform: [{ scale: INITIAL_SCALE_FACTOR }],
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(0.7),
-  },
-});
-
-const logoKeyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 1.3 }],
     opacity: 0,
+    transform: [{ translateY: Spacing.three }],
   },
-  40: {
-    transform: [{ scale: 1.3 }],
+  [Math.round((WORDMARK_DELAY / WORDMARK_TOTAL) * 100)]: {
     opacity: 0,
-    easing: Easing.elastic(0.7),
+    transform: [{ translateY: Spacing.three }],
   },
   100: {
     opacity: 1,
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(0.7),
+    transform: [{ translateY: 0 }],
+    easing: Easing.out(Easing.cubic),
   },
 });
 
-const glowKeyframe = new Keyframe({
+const overlayKeyframe = new Keyframe({
   0: {
-    transform: [{ rotateZ: '0deg' }],
+    opacity: 1,
   },
   100: {
-    transform: [{ rotateZ: '7200deg' }],
+    opacity: 0,
+    easing: Easing.in(Easing.quad),
   },
 });
 
-export function AnimatedIcon() {
-  return (
-    <View style={styles.iconContainer}>
-      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
-        <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
-      </Animated.View>
+/**
+ * Cobre a splash nativa com a mesma paleta e o mesmo monograma, de modo que a
+ * troca não se vê; só então o nome entra e o overlay se retira.
+ *
+ * A troca de `View` para `Animated.View` não é cosmética: animação de layout só
+ * roda no mount, e é a remontagem que faz o `entering` do nome acontecer.
+ */
+export function AnimatedSplashOverlay() {
+  const theme = useTheme();
+  const [revealed, setRevealed] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const revealedRef = useRef(false);
 
-      <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
-      <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
-      </Animated.View>
+  const reveal = useCallback(() => {
+    if (revealedRef.current) return;
+    revealedRef.current = true;
+    setRevealed(true);
+    void SplashScreen.hideAsync();
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(reveal, REVEAL_FALLBACK);
+    return () => clearTimeout(timeout);
+  }, [reveal]);
+
+  useEffect(() => {
+    if (!revealed) return;
+    const timeout = setTimeout(() => setVisible(false), WORDMARK_TOTAL + WORDMARK_HOLD);
+    return () => clearTimeout(timeout);
+  }, [revealed]);
+
+  if (!visible) return null;
+
+  const surface = { backgroundColor: theme.background };
+  const mark = (
+    <View style={[styles.mark, { backgroundColor: theme.primary }]}>
+      <Text style={[styles.glyph, { color: theme.background }]}>P</Text>
     </View>
+  );
+  const name = <Text style={[styles.wordmarkText, { color: theme.text }]}>Palavra Viva</Text>;
+
+  if (!revealed) {
+    return (
+      <View onLayout={reveal} style={[styles.overlay, surface]}>
+        {mark}
+        <View style={styles.wordmark}>{name}</View>
+      </View>
+    );
+  }
+
+  return (
+    <Animated.View exiting={overlayKeyframe.duration(EXIT_DURATION)} style={[styles.overlay, surface]}>
+      {mark}
+      <Animated.View entering={wordmarkKeyframe.duration(WORDMARK_TOTAL)} style={styles.wordmark}>
+        {name}
+      </Animated.View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  glow: {
-    width: 201,
-    height: 201,
-    position: 'absolute',
-  },
-  iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 128,
-    height: 128,
-    zIndex: 100,
-  },
-  image: {
-    width: 76,
-    height: 71,
-  },
-  background: {
-    borderRadius: 40,
-    experimental_backgroundImage: `linear-gradient(180deg, #3C9FFE, #0274DF)`,
-    width: 128,
-    height: 128,
-    position: 'absolute',
-  },
-  splashOverlay: {
+  overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
+  },
+  mark: {
+    width: 128,
+    height: 128,
+    borderRadius: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  glyph: {
+    fontFamily: Fonts.serif,
+    fontSize: 96,
+    lineHeight: 108,
+    fontWeight: '700',
+  },
+  wordmark: {
+    marginTop: Spacing.four,
+  },
+  wordmarkText: {
+    fontFamily: Fonts.serif,
+    fontSize: 30,
+    lineHeight: 38,
+    letterSpacing: 0.5,
   },
 });

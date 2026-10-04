@@ -44,7 +44,7 @@ export async function getVerse(
       },
     },
   );
-
+console.log('getVerse data:', data);
   return mapVerseResponse(data);
 }
 
@@ -57,6 +57,7 @@ export async function getChapter(book: string, chapter: number): Promise<Chapter
       version: BIBLE_VERSION,
     },
   });
+  console.log('getChapter data:', bookSlug);
   return mapChapterResponse(data);
 }
 
@@ -87,6 +88,7 @@ export async function parseReference(query: string): Promise<ParsedReference> {
       version: BIBLE_VERSION,
     },
   });
+  
   return mapParseResponse(data);
 }
 
