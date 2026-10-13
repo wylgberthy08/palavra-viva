@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import HomeScreen from '@/app/(tabs)/index';
 import MeusScreen from '@/app/(tabs)/meus';
@@ -51,6 +51,10 @@ beforeEach(() => {
     excluir: jest.fn(),
     limpar: jest.fn(),
   });
+});
+
+afterEach(() => {
+  jest.useRealTimers();
 });
 
 describe('MeusScreen', () => {
@@ -135,6 +139,24 @@ describe('MeusScreen', () => {
 });
 
 describe('HomeScreen', () => {
+  it('aguarda o debounce para buscar após a digitação', async () => {
+    jest.useFakeTimers();
+    await render(<HomeScreen />);
+    const input = screen.getByPlaceholderText('João 3:16');
+
+    await fireEvent.changeText(input, 'Jo');
+    await fireEvent.changeText(input, 'João 3');
+    await fireEvent.changeText(input, 'João 3:16');
+
+    expect(useSearchVerseMock).not.toHaveBeenCalledWith('João 3:16');
+
+    await act(async () => {
+      jest.advanceTimersByTime(400);
+    });
+
+    expect(useSearchVerseMock).toHaveBeenLastCalledWith('João 3:16');
+  });
+
   // No Testing Library 14 `fireEvent` é assíncrono: sem `await` o escopo de
   // `act` fica aberto e o teste seguinte renderiza contra uma árvore velha.
   it('informa o motivo quando a busca tem menos de três caracteres', async () => {

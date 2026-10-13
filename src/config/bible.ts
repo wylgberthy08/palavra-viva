@@ -3,8 +3,12 @@
  * API: https://github.com/midvash/bible-api (base https://api.midvash.com)
  * Sem chave, sem auth, sem rate-limit. Conteúdo imutável (edge cache).
  */
-export const BIBLE_BASE_URL =
+const configuredBaseUrl =
   process.env.EXPO_PUBLIC_BIBLE_BASE_URL ?? 'https://api.midvash.com';
+
+export const BIBLE_BASE_URL = configuredBaseUrl
+  .replace(/\/+$/, '')
+  .replace(/\/v1$/i, '');
 
 /** Versão travada no MVP. Não expor seletor de versão. */
 export const BIBLE_VERSION = 'nvi' as const;

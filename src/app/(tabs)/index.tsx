@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { EmptyState, ErrorState, LoadingState } from '@/components/bible/bible-states';
@@ -11,23 +11,38 @@ import { useSavedVerses } from '@/hooks/use-saved-verses';
 import { useSearchVerse } from '@/hooks/use-search-verse';
 import { useTheme } from '@/hooks/use-theme';
 
+const SEARCH_DEBOUNCE_MS = 400;
+
 export default function HomeScreen() {
   const theme = useTheme();
   const { isSaved, toggleVerse } = useSavedVerses();
   const [query, setQuery] = useState('');
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [buscaCurta, setBuscaCurta] = useState(false);
+  
 
   const search = useSearchVerse(submitted ?? '');
   const activeVerse = search.data ?? null;
   const isLoading = submitted !== null && search.isPending;
   const error = search.isError ? search.error : null;
 
+  useEffect(() => {
+    const normalized = query.trim();
+    if (normalized.length < 3) return;
+
+    const timeout = setTimeout(() => setSubmitted(normalized), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const changeQuery = (value: string) => {
+    setQuery(value);
+    setSubmitted(null);
+    setBuscaCurta(false);
+  };
+
   const submitSearch = (value = query) => {
     const normalized = value.trim();
     if (normalized.length < 3) {
-      // Antes, a busca morria em silêncio e a tela continuava mostrando o
-      // estado anterior, como se o botão não tivesse funcionado.
       setQuery(normalized);
       setSubmitted(null);
       setBuscaCurta(true);
@@ -72,7 +87,7 @@ export default function HomeScreen() {
             </Pressable>
             <TextInput
               value={query}
-              onChangeText={setQuery}
+              onChangeText={changeQuery}
               onSubmitEditing={() => submitSearch()}
               placeholder="João 3:16"
               placeholderTextColor={theme.textSecondary}
@@ -88,7 +103,7 @@ export default function HomeScreen() {
 
      
 
-         {isLoading ? <LoadingState message="Buscando versículo..." /> : null} 
+          {isLoading ? <LoadingState message="Buscando versículo..." /> : null}
           {error ? <ErrorState message={getBibleErrorMessage(error)} onRetry={() => search.refetch()} /> : null}
           {buscaCurta ? (
             <ErrorState message="Digite ao menos 3 caracteres, por exemplo “João 3:16”." />
@@ -121,7 +136,9 @@ export default function HomeScreen() {
             </>
           ) : null}
 
-          {!activeVerse && !isLoading && !error ? <EmptyState message="Digite uma referência e toque na lupa para buscar." /> : null}
+          {!query && !activeVerse && !isLoading && !error ? (
+            <EmptyState message="Digite uma referência, por exemplo “João 3:16”." />
+          ) : null}
         </ScrollView>
       </View>
     </ThemedView>
