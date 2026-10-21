@@ -1,9 +1,10 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 
 import { Fonts, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
 /** Tempo do nome entrando, e duração do overlay se retirando. */
@@ -56,6 +57,7 @@ const overlayKeyframe = new Keyframe({
  */
 export function AnimatedSplashOverlay() {
   const theme = useTheme();
+  const isDark = useColorScheme() === 'dark';
   const [revealed, setRevealed] = useState(false);
   const [visible, setVisible] = useState(true);
   const revealedRef = useRef(false);
@@ -82,15 +84,21 @@ export function AnimatedSplashOverlay() {
 
   const surface = { backgroundColor: theme.background };
   const mark = (
-    <View style={[styles.mark, { backgroundColor: theme.primary }]}>
-      <Text style={[styles.glyph, { color: theme.background }]}>P</Text>
-    </View>
+    <Image
+      source={isDark
+        ? require('@/assets/images/palavra-viva-splash-dark.png')
+        : require('@/assets/images/palavra-viva-splash.png')}
+      style={styles.mark}
+      resizeMode="contain"
+      accessibilityLabel="Palavra Viva"
+      onLoadEnd={reveal}
+    />
   );
   const name = <Text style={[styles.wordmarkText, { color: theme.text }]}>Palavra Viva</Text>;
 
   if (!revealed) {
     return (
-      <View onLayout={reveal} style={[styles.overlay, surface]}>
+      <View style={[styles.overlay, surface]}>
         {mark}
         <View style={styles.wordmark}>{name}</View>
       </View>
@@ -115,20 +123,13 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   mark: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  glyph: {
-    fontFamily: Fonts.serif,
-    fontSize: 96,
-    lineHeight: 108,
-    fontWeight: '700',
+    width: 160,
+    height: 160,
   },
   wordmark: {
-    marginTop: Spacing.four,
+    position: 'absolute',
+    top: '50%',
+    marginTop: 96,
   },
   wordmarkText: {
     fontFamily: Fonts.serif,

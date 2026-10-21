@@ -1,17 +1,20 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import HomeScreen from '@/app/(tabs)/index';
 import MeusScreen from '@/app/(tabs)/meus';
 import { useSavedVerses } from '@/hooks/use-saved-verses';
-import { useSearchVerse } from '@/hooks/use-search-verse';
+import { useVerseOfDay } from '@/hooks/use-verse-of-day';
 
 jest.mock('@/hooks/use-saved-verses', () => ({ useSavedVerses: jest.fn() }));
-jest.mock('@/hooks/use-search-verse', () => ({ useSearchVerse: jest.fn() }));
+jest.mock('@/hooks/use-verse-of-day', () => ({ useVerseOfDay: jest.fn() }));
+jest.mock('@/hooks/use-books', () => ({ useBooks: () => ({ books: [{ name: 'João', slug: 'joao', chapters: 21 }], isPending: false }) }));
+jest.mock('@/hooks/use-chapter', () => ({ useChapter: () => ({ data: { verses: [{ verse: 1 }] }, isPending: false }) }));
+jest.mock('@/hooks/use-verse', () => ({ useVerse: () => ({ data: { ref: 'joao/1/1', reference: 'João 1:1', text: 'Texto selecionado' }, isPending: false }) }));
 jest.mock('@/auth', () => ({ useAuth: jest.fn() }));
 jest.mock('@/account/hooks/use-excluir-conta', () => ({ useExcluirConta: jest.fn() }));
 
 const useAuth = jest.requireMock('@/auth').useAuth as jest.Mock;
-const useSearchVerseMock = useSearchVerse as jest.MockedFunction<typeof useSearchVerse>;
+const useVerseOfDayMock = useVerseOfDay as jest.MockedFunction<typeof useVerseOfDay>;
 const useExcluirContaMock = jest.requireMock('@/account/hooks/use-excluir-conta')
   .useExcluirConta as jest.Mock;
 
@@ -37,13 +40,13 @@ function semSalvos(extra: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   semSalvos();
-  useSearchVerseMock.mockReturnValue({
-    data: undefined,
+  useVerseOfDayMock.mockReturnValue({
+    data: { ref: 'joao/14/27', reference: 'João 14:27', text: 'Deixo-lhes a paz.' },
     isPending: false,
     isError: false,
     error: null,
     refetch: jest.fn(),
-  } as unknown as ReturnType<typeof useSearchVerse>);
+  } as unknown as ReturnType<typeof useVerseOfDay>);
   useAuth.mockReturnValue({ user: null, signOut: jest.fn() });
   useExcluirContaMock.mockReturnValue({
     estado: 'ocioso',
@@ -139,55 +142,39 @@ describe('MeusScreen', () => {
 });
 
 describe('HomeScreen', () => {
-  it('aguarda o debounce para buscar após a digitação', async () => {
-    jest.useFakeTimers();
+  it('revela e oculta o texto', async () => {
     await render(<HomeScreen />);
-    const input = screen.getByPlaceholderText('João 3:16');
-
-    await fireEvent.changeText(input, 'Jo');
-    await fireEvent.changeText(input, 'João 3');
-    await fireEvent.changeText(input, 'João 3:16');
-
-    expect(useSearchVerseMock).not.toHaveBeenCalledWith('João 3:16');
-
-    await act(async () => {
-      jest.advanceTimersByTime(400);
-    });
-
-    expect(useSearchVerseMock).toHaveBeenLastCalledWith('João 3:16');
+    expect(screen.queryByText('Deixo-lhes a paz.')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Revelar versículo João 14:27'));
+    expect(screen.getByText('Deixo-lhes a paz.')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Ocultar versículo'));
+    expect(screen.queryByText('Deixo-lhes a paz.')).toBeNull();
   });
-
-  // No Testing Library 14 `fireEvent` é assíncrono: sem `await` o escopo de
-  // `act` fica aberto e o teste seguinte renderiza contra uma árvore velha.
-  it('informa o motivo quando a busca tem menos de três caracteres', async () => {
+  it('salva o versículo atual', async () => {
     await render(<HomeScreen />);
-
-    await fireEvent.changeText(screen.getByPlaceholderText('João 3:16'), 'Jo');
-    await fireEvent.press(screen.getByLabelText('Buscar versículo'));
-
-    await waitFor(() => {
-      expect(screen.getByText(/ao menos 3 caracteres/)).toBeTruthy();
-    });
+    await fireEvent.press(screen.getByText('Salvar para decorar'));
+    expect(RECARGA.saveVerse).toHaveBeenCalledWith(expect.objectContaining({ ref: 'joao/14/27' }));
+    expect(RECARGA.toggleVerse).not.toHaveBeenCalled();
   });
-
-  it('limpa o aviso quando a busca volta a ter tamanho válido', async () => {
+  it('mostra o progresso real', async () => {
+    semSalvos({ items: [{ ref: 'a', status: 'dominado' }, { ref: 'b', status: 'decorando' }] });
     await render(<HomeScreen />);
-
-    await fireEvent.changeText(screen.getByPlaceholderText('João 3:16'), 'Jo');
-    await fireEvent.press(screen.getByLabelText('Buscar versículo'));
-    await waitFor(() => expect(screen.getByText(/ao menos 3 caracteres/)).toBeTruthy());
-
-    // A entrada é consultada de novo: a referência capturada antes do
-    // `waitFor` pertence a uma árvore que já foi descartada.
-    await fireEvent.changeText(screen.getByPlaceholderText('João 3:16'), 'João 3:16');
-    await fireEvent.press(screen.getByLabelText('Buscar versículo'));
-
-    await waitFor(() => expect(screen.queryByText(/ao menos 3 caracteres/)).toBeNull());
+    expect(screen.getByText('1/2 dominados')).toBeTruthy();
   });
-
-  it('não mostra o aviso antes de qualquer busca', async () => {
+  it('seleciona uma passagem e reinicia a seleção ao mudar o livro', async () => {
     await render(<HomeScreen />);
-
-    expect(screen.queryByText(/ao menos 3 caracteres/)).toBeNull();
+    expect(screen.getByLabelText('Selecionar capítulo').props.accessibilityState.disabled).toBe(true);
+    await fireEvent.press(screen.getByLabelText('Selecionar livro'));
+    await fireEvent.press(screen.getByText('João'));
+    await fireEvent.press(screen.getByLabelText('Selecionar capítulo'));
+    await fireEvent.press(screen.getByText('1'));
+    await fireEvent.press(screen.getByLabelText('Selecionar versículo'));
+    const options = screen.getAllByText('1');
+    await fireEvent.press(options[options.length - 1]);
+    expect(screen.getByLabelText('Revelar versículo João 1:1')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Selecionar livro'));
+    const bookOptions = screen.getAllByText('João', { exact: true });
+    await fireEvent.press(bookOptions[bookOptions.length - 1]);
+    expect(screen.getByLabelText('Selecionar versículo').props.accessibilityState.disabled).toBe(true);
   });
 });

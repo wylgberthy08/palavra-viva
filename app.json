@@ -30,16 +30,18 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFF8F5",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 150,
+          "image": "./assets/images/palavra-viva-splash.png",
+          "imageWidth": 160,
           "dark": {
             "backgroundColor": "#2B2420",
-            "image": "./assets/images/splash-icon-dark.png"
-          }
+            "image": "./assets/images/palavra-viva-splash-dark.png"
+          },
+          "resizeMode": "contain"
         }
       ],
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/with-android-build-limits"
     ],
     "experiments": {
       "typedRoutes": true,

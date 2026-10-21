@@ -1,28 +1,26 @@
+import Feather from '@expo/vector-icons/Feather';
 import { useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 
 import { OpcoesConta } from '@/account/components/OpcoesConta';
 import { useExcluirConta } from '@/account/hooks/use-excluir-conta';
-import { ErrorState, EmptyState, LoadingState } from '@/components/bible/bible-states';
-import { Flashcard } from '@/components/bible/flashcard';
-import { VerseCard } from '@/components/bible/verse-card';
+import { useAuth } from '@/auth';
+import { EmptyState, ErrorState, LoadingState } from '@/components/bible/bible-states';
+import { VersePractice } from '@/components/bible/verse-practice';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useSavedVerses } from '@/hooks/use-saved-verses';
 import { useTheme } from '@/hooks/use-theme';
-import { useAuth } from '@/auth';
 import type { SavedStatus } from '@/types/saved-verse';
 
 type Filter = 'all' | SavedStatus;
-
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'Todos' },
   { key: 'decorando', label: 'Decorando' },
   { key: 'dominado', label: 'Dominados' },
 ];
 
-/** Toca no versículo e ele abre direto no flashcard, sem trocar de tela. */
 export default function MeusScreen() {
   const { items, loading, error, reload, removeVerse, updateStatus } = useSavedVerses();
   const { user, signOut } = useAuth();
@@ -31,229 +29,130 @@ export default function MeusScreen() {
   const [openRef, setOpenRef] = useState<string | null>(null);
   const [contaAberta, setContaAberta] = useState(false);
   const { estado: estadoExclusao, mensagem, excluir, limpar } = useExcluirConta();
-
-  // `user.email` é string vazia para conta sem e-mail, e `[0]` em string vazia é
-  // `undefined`. O fallback evita o TypeError que derrubava a tela inteira.
   const avatarInitial = (user?.name?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+  const visible = filter === 'all' ? items : items.filter((item) => item.status === filter);
+  const practicing = items.find((item) => item.ref === openRef);
 
-  const emAndamento = estadoExclusao === 'excluindo';
-
-  const fecharConta = () => {
+  function fecharConta() {
     setContaAberta(false);
     limpar();
-  };
+  }
 
-  const confirmarExclusao = () => excluir();
-
-  const handleSignOut = () => {
+  function handleSignOut() {
     fecharConta();
     void signOut();
-  };
-
-  const visible = filter === 'all' ? items : items.filter((v) => v.status === filter);
+  }
 
   return (
-    <ThemedView edges={['top', 'left', 'right']} style={styles.container}>
+    <ThemedView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.collectionCanvas }]}>
       <View style={styles.safeArea}>
-        <ThemedView style={styles.header}>
-          <ThemedView style={styles.headerTop}>
-            <ThemedView>
-              <ThemedText type="smallBold" themeColor="primary" style={styles.eyebrow}>
-                SEU CAMINHO
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View style={styles.heading}>
+              <ThemedText accessibilityRole="header" style={styles.title}>Decorados</ThemedText>
+              <ThemedText style={styles.subtitle} themeColor="collectionMuted">
+                {loading ? 'Carregando coleção...' : error ? 'Coleção indisponível' : `${items.length} ${items.length === 1 ? 'versículo salvo' : 'versículos salvos'}`}
               </ThemedText>
-              <ThemedText type="subtitle" style={styles.title}>
-                Versículos decorados
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {items.length} {items.length === 1 ? 'versículo guardado' : 'versículos guardados'}
-              </ThemedText>
-            </ThemedView>
-            {user && (
-              <Pressable
-                onPress={() => setContaAberta(true)}
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel="Abrir opções da conta"
-                style={styles.profileButton}>
-                <ThemedView style={styles.avatar}>
-                  {user.avatarUrl ? (
-                    <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
-                  ) : (
-                    <ThemedText type="smallBold" themeColor="primary" style={styles.avatarInitial}>
-                      {avatarInitial}
-                    </ThemedText>
-                  )}
-                </ThemedView>
+            </View>
+            {user ? (
+              <Pressable onPress={() => setContaAberta(true)} accessibilityRole="button" accessibilityLabel="Abrir opções da conta"
+                style={[styles.avatar, { backgroundColor: theme.collectionChip }]}>
+                {user.avatarUrl ? <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} /> : (
+                  <ThemedText type="smallBold" themeColor="collectionPrimary">{avatarInitial}</ThemedText>
+                )}
               </Pressable>
-            )}
-          </ThemedView>
-          <ThemedView style={styles.filters}>
-            {FILTERS.map((f) => {
-              const selected = filter === f.key;
+            ) : null}
+          </View>
+          <View style={styles.filters}>
+            {FILTERS.map((entry) => {
+              const selected = filter === entry.key;
               return (
-                <Pressable
-                  key={f.key}
-                  onPress={() => setFilter(f.key)}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    { borderColor: theme.primary },
-                    selected && styles.chipSelected,
-                    pressed && styles.pressed,
-                  ]}>
-                    <ThemedText type="small" themeColor={selected ? 'backgroundElement' : 'textSecondary'}>
-                    {f.label}
-                  </ThemedText>
+                <Pressable key={entry.key} accessibilityRole="button" accessibilityLabel={entry.label} accessibilityState={{ selected }}
+                  onPress={() => setFilter(entry.key)}
+                  style={({ pressed }) => [styles.chip, { backgroundColor: selected ? theme.collectionPrimary : theme.collectionChip, borderColor: selected ? theme.collectionPrimary : theme.collectionBorder }, pressed && styles.pressed]}>
+                  <ThemedText style={styles.chipText} themeColor={selected ? 'collectionOnPrimary' : 'collectionMuted'}>{entry.label.toUpperCase()}</ThemedText>
                 </Pressable>
               );
             })}
-          </ThemedView>
-        </ThemedView>
-
-        {loading ? (
-          <LoadingState message="Carregando salvos..." />
-        ) : error ? (
-          // Falha de leitura é o motivo de a lista vir vazia, então ela é
-          // mostrada no lugar da lista e não ao lado dela.
-          <View style={styles.list}>
-            <ErrorState message={error} onRetry={reload} />
           </View>
+        </View>
+        {loading ? <LoadingState message="Carregando salvos..." /> : error ? (
+          <View style={styles.list}><ErrorState message={error} onRetry={reload} /></View>
         ) : (
-          <FlatList
-            data={visible}
-            keyExtractor={(item) => item.ref}
-            contentContainerStyle={styles.list}
-            ListEmptyComponent={
-              <EmptyState message="Nenhum versículo decorado ainda. Salve um na Home." />
-            }
+          <FlatList data={visible} keyExtractor={(item) => item.ref} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}
+            ListEmptyComponent={<EmptyState message={items.length === 0 ? 'Nenhum versículo decorado ainda. Salve um na Home.' : 'Nenhum versículo neste filtro.'} />}
             renderItem={({ item }) => {
-              const open = openRef === item.ref;
+              const mastered = item.status === 'dominado';
+              const statusColor = mastered ? theme.success : theme.accent;
+              const nextColor = mastered ? theme.accent : theme.success;
               return (
-                <ThemedView style={styles.item}>
-                  <VerseCard
-                    reference={item.reference}
-                    text={item.text}
-                    onPress={() => setOpenRef(open ? null : item.ref)}
-                  />
-                  {open ? (
-                    <Flashcard reference={item.reference} text={item.text}>
-                      <ThemedView style={styles.itemActions}>
-                        <Pressable
-                          hitSlop={8}
-                          onPress={() =>
-                            updateStatus(item.ref, item.status === 'dominado' ? 'decorando' : 'dominado')
-                          }>
-                          <ThemedText type="linkPrimary">
-                            {item.status === 'dominado' ? '✓ Dominado' : 'Marcar dominado'}
-                          </ThemedText>
-                        </Pressable>
-                        <Pressable hitSlop={8} onPress={() => removeVerse(item.ref)}>
-                          <ThemedText type="small" themeColor="textSecondary">
-                            Remover
-                          </ThemedText>
-                        </Pressable>
-                      </ThemedView>
-                    </Flashcard>
-                  ) : null}
-                </ThemedView>
+                <View style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.collectionBorder, shadowColor: theme.text }]}>
+                  <View style={styles.cardHeader}>
+                    <View style={styles.referenceGroup}>
+                      <ThemedText style={styles.reference}>{item.reference}</ThemedText>
+                      <ThemedText style={styles.citation} themeColor="collectionMuted">{item.reference}</ThemedText>
+                    </View>
+                    <View style={[styles.badge, { backgroundColor: mastered ? theme.collectionSuccess : theme.collectionAccent }]}>
+                      <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+                      <ThemedText style={[styles.badgeText, { color: statusColor }]}>{mastered ? 'DOMINADO' : 'DECORANDO'}</ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText style={styles.verseText}>{item.text}</ThemedText>
+                  <View style={[styles.actions, { borderTopColor: theme.collectionBorder }]}>
+                    <Pressable accessibilityRole="button" accessibilityLabel={`Praticar ${item.reference}`} onPress={() => setOpenRef(item.ref)}
+                      style={({ pressed }) => [styles.practiceButton, { backgroundColor: theme.collectionPrimary }, pressed && styles.pressed]}>
+                      <ThemedText style={styles.actionText} themeColor="collectionOnPrimary">Praticar</ThemedText>
+                    </Pressable>
+                    <Pressable accessibilityRole="button" accessibilityLabel={`Marcar ${item.reference} como ${mastered ? 'decorando' : 'dominado'}`}
+                      onPress={() => updateStatus(item.ref, mastered ? 'decorando' : 'dominado')}
+                      style={({ pressed }) => [styles.statusButton, { backgroundColor: mastered ? theme.collectionAccent : theme.collectionSuccess }, pressed && styles.pressed]}>
+                      <Feather name={mastered ? 'rotate-ccw' : 'star'} size={17} color={nextColor} />
+                      <ThemedText style={[styles.actionText, { color: nextColor }]}>{mastered ? 'Decorando' : 'Dominado'}</ThemedText>
+                    </Pressable>
+                    <Pressable accessibilityRole="button" accessibilityLabel={`Remover ${item.reference}`} onPress={() => removeVerse(item.ref)}
+                      style={({ pressed }) => [styles.removeButton, { backgroundColor: theme.collectionDanger }, pressed && styles.pressed]}>
+                      <Feather name="trash-2" size={17} color={theme.danger} />
+                    </Pressable>
+                  </View>
+                </View>
               );
-            }}
-          />
+            }} />
         )}
       </View>
-
-      <OpcoesConta
-        visible={contaAberta}
-        email={user?.email ?? ''}
-        busy={emAndamento}
-        mensagem={mensagem}
-        onClose={fecharConta}
-        onSignOut={handleSignOut}
-        onDelete={confirmarExclusao}
-      />
+      {practicing ? <VersePractice key={practicing.ref} verse={practicing} error={error} onClose={() => setOpenRef(null)} onMaster={() => updateStatus(practicing.ref, 'dominado')} /> : null}
+      <OpcoesConta visible={contaAberta} email={user?.email ?? ''} busy={estadoExclusao === 'excluindo'} mensagem={mensagem}
+        onClose={fecharConta} onSignOut={handleSignOut} onDelete={() => excluir()} />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  safeArea: {
-    flex: 1,
-    maxWidth: MaxContentWidth,
-  },
-  header: {
-    gap: Spacing.two,
-    padding: Spacing.four,
-    paddingBottom: Spacing.two,
-    backgroundColor: 'transparent',
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  title: {
-    fontSize: 30,
-    lineHeight: 36,
-  },
-  eyebrow: {
-    letterSpacing: 1,
-  },
-  filters: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-    backgroundColor: 'transparent',
-  },
-  chip: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.five,
-    borderWidth: 1,
-    borderColor: '#E46F4D',
-  },
-  chipSelected: {
-    backgroundColor: '#E46F4D',
-  },
-  profileButton: {
-    padding: Spacing.one,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#E46F4D',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 18,
-  },
-  avatarInitial: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  list: {
-    gap: Spacing.three,
-    padding: Spacing.four,
-    paddingTop: Spacing.two,
-    paddingBottom: Spacing.four,
-  },
-  item: {
-    gap: Spacing.two,
-    backgroundColor: 'transparent',
-  },
-  itemActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: 'transparent',
-  },
-  pressed: {
-    opacity: 0.8,
-  },
+  container: { flex: 1, alignItems: 'center' },
+  safeArea: { flex: 1, maxWidth: 560, width: '100%' },
+  header: { gap: Spacing.four, padding: Spacing.four, paddingBottom: Spacing.three },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.three },
+  heading: { flex: 1, gap: Spacing.one },
+  title: { fontFamily: Fonts.serif, fontSize: 30, lineHeight: 40, fontWeight: '700' },
+  subtitle: { fontSize: 13, lineHeight: 20 },
+  filters: { flexDirection: 'row', gap: Spacing.two, flexWrap: 'wrap' },
+  chip: { minHeight: 36, borderRadius: 999, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  chipText: { fontSize: 10, lineHeight: 16, letterSpacing: 0.8, fontWeight: '700' },
+  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatarImage: { width: '100%', height: '100%' },
+  list: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.six, gap: Spacing.three },
+  card: { borderWidth: 1, borderRadius: 18, padding: Spacing.three, gap: Spacing.three, shadowOpacity: 0.035, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 1 },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: Spacing.two },
+  referenceGroup: { flexShrink: 1, gap: 2 },
+  reference: { fontFamily: Fonts.serif, fontSize: 19, lineHeight: 26, fontWeight: '700' },
+  citation: { fontFamily: Fonts.serif, fontSize: 13, lineHeight: 20, fontStyle: 'italic' },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  statusDot: { width: 5, height: 5, borderRadius: 3 },
+  badgeText: { fontSize: 9, lineHeight: 14, letterSpacing: 0.8, fontWeight: '700' },
+  verseText: { fontFamily: Fonts.serif, fontSize: 16, lineHeight: 25 },
+  actions: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.two, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 },
+  practiceButton: { flex: 1, minWidth: 88, minHeight: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  statusButton: { flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center', minHeight: 40, borderRadius: 999, paddingHorizontal: 10 },
+  removeButton: { width: 36, minHeight: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  actionText: { fontSize: 11, lineHeight: 18, fontWeight: '700' },
+  pressed: { opacity: 0.7 },
 });
