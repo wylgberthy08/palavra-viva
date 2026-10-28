@@ -4,13 +4,9 @@ Aplicativo mobile para encontrar, estudar e memorizar versículos bíblicos. Bus
 
 ## Capturas de tela
 
-| Busca de versículos | Frente do flashcard |
-|:--:|:--:|
-| <img src="assets/screenshots/01-busca.png" alt="Tela inicial com campo de busca de versículos" width="220"> | <img src="assets/screenshots/02-frente-do-flashcard.png" alt="Flashcard com a referência antes de revelar o versículo" width="220"> |
-
-| Versículo revelado | Coleção de versículos salvos |
-|:--:|:--:|
-| <img src="assets/screenshots/03-versiculo-revelado.png" alt="Flashcard mostrando o texto do versículo" width="220"> | <img src="assets/screenshots/04-versiculos-salvos.png" alt="Lista de versículos salvos com filtros de progresso" width="220"> |
+| Frente do flashcard | Versículo revelado | Coleção de versículos salvos |
+|:--:|:--:|:--:|
+| <img src="assets/screenshots/02-frente-do-flashcard.png" alt="Tela inicial com a referência do versículo antes de revelar o texto" width="220"> | <img src="assets/screenshots/03-versiculo-revelado.png" alt="Flashcard mostrando o texto do versículo" width="220"> | <img src="assets/screenshots/04-versiculos-salvos.png" alt="Lista de versículos salvos com filtros de progresso" width="220"> |
 
 ## Funcionalidades
 
